@@ -46,6 +46,16 @@
       }
     }
   },
+  "register_api_url": {
+    "description": "可选：现有DN Web注册接口地址，例如 http://host:3000/api/register；填写后优先走HTTP接口，无需安装pymssql",
+    "type": "string",
+    "default": ""
+  },
+  "register_api_timeout": {
+    "description": "HTTP注册接口超时秒数",
+    "type": "int",
+    "default": 10
+  },
   "register_procedure": {
     "description": "账号注册存储过程名",
     "type": "string",

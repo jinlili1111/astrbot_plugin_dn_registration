@@ -1,1 +1,3 @@
+# Optional when using direct SQL Server mode.
+# If register_api_url is configured, this dependency is not required at runtime.
 pymssql>=2.3.0

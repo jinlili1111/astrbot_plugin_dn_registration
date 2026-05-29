@@ -10,7 +10,12 @@
 
 ## 数据库
 
-插件通过 SQL Server 连接 `DNMembership` 账号库，调用注册存储过程 `__NX__CreateAccount`。数据库连接、账号库名、存储过程名都可在 AstrBot 插件配置中修改。
+插件支持两种注册方式：
+
+1. 优先推荐：配置 `register_api_url`，直接调用现有 DN Web 后台的 `POST /api/register`，例如 `http://宿主机IP:3000/api/register`。这种方式不需要在 AstrBot 容器里安装 SQL Server 驱动。
+2. 直连 SQL Server：不填写 `register_api_url` 时，插件连接 `DNMembership` 账号库，调用注册存储过程 `__NX__CreateAccount`。
+
+数据库连接、账号库名、存储过程名都可在 AstrBot 插件配置中修改。
 
 不要把真实数据库密码写入仓库。请在 AstrBot WebUI 的插件配置里填写。
 
@@ -20,6 +25,7 @@
 - `database.port`：SQL Server 端口。
 - `database.user`：数据库用户名。
 - `database.password`：数据库密码。
+- `register_api_url`：可选，现有 DN Web 注册接口地址；填写后优先使用 HTTP 注册。
 - `database.membership_database`：账号库名，默认 `DNMembership`。
 - `register_procedure`：注册存储过程名，默认 `__NX__CreateAccount`。
 - `private_chat_only`：默认开启，只允许私聊注册。
