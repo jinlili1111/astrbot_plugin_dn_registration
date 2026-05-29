@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+config.env
+data/backups/
+dn.zip
+dn_extracted/
+docs/

@@ -1,0 +1,9 @@
+name: astrbot_plugin_dn_registration
+display_name: 龙之谷QQ注册
+desc: 使用QQ号作为龙之谷账号，通过私聊六位数字密码完成注册。
+version: v1.0.0
+author: jinlili1111
+repo: https://github.com/jinlili1111/astrbot_plugin_dn_registration
+support_platforms:
+  - aiocqhttp
+astrbot_version: ">=4.0.0"

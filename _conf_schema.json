@@ -1,0 +1,74 @@
+{
+  "database": {
+    "description": "SQL Server 数据库连接配置",
+    "type": "object",
+    "items": {
+      "server": {
+        "description": "SQL Server 地址",
+        "type": "string",
+        "default": "127.0.0.1"
+      },
+      "port": {
+        "description": "SQL Server 端口",
+        "type": "int",
+        "default": 1433
+      },
+      "user": {
+        "description": "数据库用户名",
+        "type": "string",
+        "default": "sa"
+      },
+      "password": {
+        "description": "数据库密码",
+        "type": "string",
+        "default": "",
+        "obvious_hint": true
+      },
+      "membership_database": {
+        "description": "账号库名",
+        "type": "string",
+        "default": "DNMembership"
+      },
+      "charset": {
+        "description": "连接字符集",
+        "type": "string",
+        "default": "utf8"
+      },
+      "login_timeout": {
+        "description": "连接超时秒数",
+        "type": "int",
+        "default": 10
+      },
+      "request_timeout": {
+        "description": "SQL执行超时秒数",
+        "type": "int",
+        "default": 20
+      }
+    }
+  },
+  "register_procedure": {
+    "description": "账号注册存储过程名",
+    "type": "string",
+    "default": "__NX__CreateAccount"
+  },
+  "create_audit_table": {
+    "description": "启动时自动创建插件注册审计表",
+    "type": "bool",
+    "default": true
+  },
+  "audit_table": {
+    "description": "插件注册审计表名",
+    "type": "string",
+    "default": "astrbot_dn_registration_audit"
+  },
+  "private_chat_only": {
+    "description": "只允许私聊注册，避免群聊泄露密码",
+    "type": "bool",
+    "default": true
+  },
+  "show_success_password_hint": {
+    "description": "注册成功后提示用户保存密码，不回显密码",
+    "type": "bool",
+    "default": true
+  }
+}
