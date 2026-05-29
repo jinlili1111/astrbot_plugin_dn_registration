@@ -1,10 +1,7 @@
 import asyncio
-import json
 import re
 from contextlib import contextmanager
 from typing import Any
-import urllib.error
-import urllib.request
 
 from astrbot.api import AstrBotConfig, logger
 from astrbot.api.event import AstrMessageEvent, filter
@@ -77,7 +74,7 @@ class DNRegistrationPlugin(Star):
         except ImportError as exc:
             raise RuntimeError(
                 "pymssql is not installed. Install requirements.txt in the AstrBot "
-                "container or configure register_api_url to call an existing DN Web API."
+                "container before using direct SQL Server registration."
             ) from exc
 
         db = self._get_dict("database")
@@ -98,41 +95,6 @@ class DNRegistrationPlugin(Star):
             conn.close()
 
     def _register_account(self, account_name: str, password: str) -> dict[str, Any]:
-        api_url = str(self._get("register_api_url", "") or "").strip()
-        if api_url:
-            return self._register_account_via_http(api_url, account_name, password)
-        return self._register_account_via_sqlserver(account_name, password)
-
-    def _register_account_via_http(
-        self, api_url: str, account_name: str, password: str
-    ) -> dict[str, Any]:
-        payload = json.dumps(
-            {"username": account_name, "password": password}, ensure_ascii=False
-        ).encode("utf-8")
-        timeout = max(3, self._get_int("register_api_timeout", 10))
-        request = urllib.request.Request(
-            api_url,
-            data=payload,
-            headers={"Content-Type": "application/json"},
-            method="POST",
-        )
-        try:
-            with urllib.request.urlopen(request, timeout=timeout) as response:
-                data = json.loads(response.read().decode("utf-8"))
-            success = bool(data.get("success"))
-            message = str(data.get("message") or ("注册成功。" if success else "注册失败。"))
-            return {"success": success, "message": message}
-        except urllib.error.HTTPError as exc:
-            body = exc.read().decode("utf-8", errors="ignore")
-            logger.warning(f"DN register API HTTP error account={account_name}: {body}")
-            return {"success": False, "message": "注册接口返回错误，请联系管理员。"}
-        except Exception as exc:
-            logger.exception(f"DN register API failed account={account_name}: {exc}")
-            return {"success": False, "message": "注册接口不可用，请联系管理员。"}
-
-    def _register_account_via_sqlserver(
-        self, account_name: str, password: str
-    ) -> dict[str, Any]:
         try:
             with self._connection() as conn:
                 with conn.cursor(as_dict=True) as cursor:
@@ -238,13 +200,6 @@ class DNRegistrationPlugin(Star):
         if isinstance(value, str):
             return value.strip().lower() in {"1", "true", "yes", "on"}
         return bool(value)
-
-    def _get_int(self, key: str, default: int) -> int:
-        value = self._get(key, default)
-        try:
-            return int(value)
-        except (TypeError, ValueError):
-            return default
 
     def _get(self, key: str, default: Any = None) -> Any:
         try:
