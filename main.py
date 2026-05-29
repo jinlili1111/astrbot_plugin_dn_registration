@@ -97,30 +97,20 @@ class DNRegistrationPlugin(Star):
     def _register_account(self, account_name: str, password: str) -> dict[str, Any]:
         try:
             with self._connection() as conn:
-                with conn.cursor(as_dict=True) as cursor:
+                with conn.cursor() as cursor:
                     cursor.execute(
-                        "SELECT TOP 1 AccountID FROM dbo.Accounts WHERE AccountName = %s",
+                        "SELECT TOP 1 1 FROM dbo.Accounts WHERE AccountName = %s",
                         (account_name,),
                     )
                     if cursor.fetchone():
                         return {"success": False, "message": "当前QQ号已注册。"}
 
                     procedure = self._procedure_name()
-                    cursor.execute(
-                        f"""
-                        DECLARE @ret INT;
-                        EXEC @ret = dbo.[{procedure}]
-                            @AccountName = %s,
-                            @NxLoginPwd = %s,
-                            @params3 = %s;
-                        SELECT @ret AS result_code;
-                        """,
-                        (account_name, password, None),
+                    result_code = self._execute_registration_procedure(
+                        cursor, procedure, account_name, password
                     )
-                    row = cursor.fetchone() or {}
                     conn.commit()
 
-            result_code = self._coerce_int(row.get("result_code"), default=0)
             if result_code == 0:
                 return {"success": True, "message": "注册成功。"}
             messages = {
@@ -135,6 +125,51 @@ class DNRegistrationPlugin(Star):
         except Exception as exc:
             logger.exception(f"DN account registration failed account={account_name}: {exc}")
             return {"success": False, "message": "注册失败，请联系管理员检查数据库配置。"}
+
+    def _execute_registration_procedure(
+        self, cursor: Any, procedure: str, account_name: str, password: str
+    ) -> int:
+        cursor.execute(
+            f"""
+            DECLARE @ret INT;
+            EXEC @ret = dbo.[{procedure}]
+                @AccountName = %s,
+                @NxLoginPwd = %s,
+                @params3 = %s;
+            SELECT @ret AS result_code;
+            """,
+            (account_name, password, None),
+        )
+
+        scalar_candidates: list[Any] = []
+        while True:
+            description = cursor.description or ()
+            if description:
+                column_names = [
+                    str(column[0] or "").strip().lower() for column in description
+                ]
+                rows = cursor.fetchall()
+                for row in rows:
+                    if not row:
+                        continue
+                    if "result_code" in column_names:
+                        return self._coerce_int(
+                            row[column_names.index("result_code")], default=0
+                        )
+                    scalar_candidates.append(row[0])
+
+            try:
+                has_next = cursor.nextset()
+            except Exception:
+                has_next = False
+            if not has_next:
+                break
+
+        for value in scalar_candidates:
+            parsed = self._coerce_int(value, default=None)
+            if parsed is not None:
+                return parsed
+        return 0
 
     def _ensure_audit_table(self):
         table = self._audit_table_name()
